@@ -1,0 +1,106 @@
+# -----------------------------
+# PYTHON
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.pkl
+*.log
+
+# Virtual Environments
+env/
+venv/
+.venv/
+
+# Byte-compiled / optimized / DLL
+*.so
+*.dll
+*.dylib
+
+# -----------------------------
+# ENVIRONMENT VARIABLES
+# -----------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------
+# FASTAPI / UVICORN
+# -----------------------------
+*.db
+*.sqlite3
+instance/
+*.pid
+
+# -----------------------------
+# REDIS / CACHE
+# -----------------------------
+*.rdb
+dump.rdb
+data/
+cache/
+
+# -----------------------------
+# DATABASE TEMP FILES
+# -----------------------------
+*.sql
+*.sqlite
+
+# Alembic / Migrations
+alembic.ini
+alembic/versions/*.pyc
+alembic/versions/*.py~
+alembic/versions/*__temp__.py
+alembic/versions/__pycache__/
+
+# -----------------------------
+# LOG FILES
+# -----------------------------
+logs/
+*.log
+
+# -----------------------------
+# EDITORS
+# -----------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -----------------------------
+# DOCKER
+# -----------------------------
+docker-compose.yml
+.docker/
+docker/
+*.img
+*.tar
+**/docker-data/
+
+# Ignore container volumes
+volumes/
+redis-data/
+db-data/
+
+# -----------------------------
+# SYSTEM FILES
+# -----------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# PYTEST
+# -----------------------------
+pytestcache/
+.cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# -----------------------------
+# BUILD OUTPUT
+# -----------------------------
+dist/
+build/

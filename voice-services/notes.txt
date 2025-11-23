@@ -1,0 +1,68 @@
+Security notes & how you integrate with Go backend / frontend
+
+JWT: The microservice verifies JWT tokens but does not issue them. Your Go backend must mint JWTs for the user (short TTL) and include the user identity (sub or user_id). Replace the verify_jwt_authorization() placeholder with your real verifier that checks signatures (JWKS for public-key tokens) and extracts user_id claim.
+
+Anti-replay: This service keeps a short TTL hash cache (in-memory) to detect duplicate audio quickly. For production use, push hashes to Redis (shared across replicas) to avoid replay across containers.
+
+Rate limiting: This example uses a simple in-memory model. For production use, use Redis-based limiter (e.g., limits or slowapi) to share state across instances.
+
+Temporary files: Audio files are stored momentarily under data/tmp and scheduled for deletion. The container should run on an ephemeral storage and cleanup policy; consider NFS/volume with lifecycle rules.
+
+Internal network only: Ensure you run this service on an internal Docker network and never expose it publicly. Frontend calls should go to Go backend; Go forwards with internal auth.
+
+Model choice: For low latency, start with whisper tiny or base. For better accuracy, use small/medium. You can also use faster-whisper or whisper.cpp for faster CPU performance — we can provide a variant later.
+
+Audio formats: The endpoint accepts common formats but expect the Whisper model to handle conversion via ffmpeg. If you want to reduce load, have frontend record 16k WAV.
+
+
+
+
+
+
+
+
+voice-services/
+│
+├── stt/                      # Speech-to-Text Microservice (Whisper)
+│   ├── app.py                # Flask/FastAPI service
+│   ├── asr_utils.py          # Audio preprocessing, security filters
+│   ├── whisper_model.py      # Loads Whisper globally (FP16/INT8)
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── config/
+│       ├── settings.py
+│       └── logging.conf
+│
+├── tts/                      # Text-to-Speech Microservice (Coqui)
+│   ├── app.py
+│   ├── tts_engine.py
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── config/
+│       ├── settings.py
+│       └── logging.conf
+│
+├── security/                 # Security layer for audio + API hardening
+│   ├── jwt_validator.py      # Validate tokens from Go backend
+│   ├── rate_limiter.py       # Per-user + per-IP request limiting
+│   ├── audio_guard.py        # Anti-replay, hash detection, format check
+│   ├── tls/                  # TLS certificates (self-signed for dev)
+│   │   ├── dev-cert.pem
+│   │   └── dev-key.pem
+│   └── __init__.py
+│
+├── api-gateway/              # (Optional) Your thin proxy layer
+│   ├── gateway.py            # Routes frontend calls → STT/TTS securely
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+├── docker-compose.yml        # Runs STT + TTS + Gateway with shared network
+├── .env.example              # Secure environment variables template
+└── README.md                 # Documentation for your module
+
+
+
+uvicorn app:app --reload --port 8001 -> stt
+uvicorn app:app --reload --port 8002 -> tts 
+uvicorn gateway:app --reload --port 8000
+

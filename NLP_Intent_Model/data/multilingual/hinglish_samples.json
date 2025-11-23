@@ -1,0 +1,10 @@
+{
+  "check_balance": [
+    "balance kitna bacha hai?",
+    "meri savings balance batao"
+  ],
+  "transfer_money": [
+    "Rohan ko 500 rupees bhej do",
+    "UPI par 1000 transfer kar do"
+  ]
+}

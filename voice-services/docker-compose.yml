@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  api_gateway:
+    build: 
+      context: ./api-gateway
+    container_name: api_gateway
+    ports:
+    - "9000:8000"
+
+    environment:
+      - STT_URL=http://stt_service:8001/asr
+      - TTS_URL=http://tts_service:8002/tts
+      - JWT_SECRET=change-this
+    depends_on:
+      - stt_service
+      - tts_service
+    networks:
+      - voice_net
+    restart: unless-stopped
+
+  stt_service:
+    build:
+      context: ./stt
+    container_name: stt_service
+    ports:
+      - "8001:8001"
+    networks:
+      - voice_net
+    volumes:
+      - ./stt/data:/app/data     # whisper temp files
+    environment:
+      - JWT_SECRET=change-this
+    restart: unless-stopped
+
+  tts_service:
+    build:
+      context: ./tts
+    container_name: tts_service
+    ports:
+      - "8002:8002"
+    networks:
+      - voice_net
+    volumes:
+      - ./tts/data/out:/app/data/out   # generated audio files
+    environment:
+      - JWT_SECRET=change-this
+    restart: unless-stopped
+
+networks:
+  voice_net:
+    driver: bridge

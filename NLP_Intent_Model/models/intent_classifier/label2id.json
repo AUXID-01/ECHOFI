@@ -1,0 +1,8 @@
+{
+  "balance_inquiry": 0,
+  "greeting": 1,
+  "help": 2,
+  "loan_query": 3,
+  "money_transfer": 4,
+  "set_reminder": 5
+}

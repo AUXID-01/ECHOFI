@@ -1,0 +1,115 @@
+# ==========================
+# PYTHON
+# ==========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+
+# Virtual env
+venv/
+.env/
+.env.*
+
+
+# ==========================
+# FASTAPI / MICRO SERVICES
+# ==========================
+# STT temp recordings & files
+stt/data/tmp/
+stt/data/tmp/*
+stt/*.wav
+stt/*.mp3
+stt/*.webm
+
+# TTS generated audio
+tts/data/out/
+tts/data/out/*
+
+# Logs
+*.log
+logs/
+**/logs/
+**/*.log
+
+
+# ==========================
+# API-GATEWAY
+# ==========================
+api-gateway/__pycache__/
+api-gateway/*.pyc
+api-gateway/*.log
+
+
+# ==========================
+# FRONTEND (React/Vite)
+# ==========================
+node_modules/
+dist/
+build/
+*.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+# ==========================
+# OS & EDITOR JUNK FILES
+# ==========================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# VSCode
+.vscode/
+.idea/
+
+
+# ==========================
+# DOCKER
+# ==========================
+**/Dockerfile.*
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Local volumes created during testing
+docker-volumes/
+.docker/
+
+
+# ==========================
+# SECURITY / SECRETS
+# ==========================
+# Sensitive secrets should NEVER be pushed
+*.pem
+*.key
+*.crt
+
+# JWT / Security Keys
+jwt_secret.txt
+secret.key
+secrets.json
+
+# Private configs
+config/local_settings.py
+**/config/*.local.json
+
+
+# ==========================
+# MISC
+# ==========================
+*.sqlite3
+*.db
+*.pid
+
+# Audio test files
+Audios.wav
+Audio.wav
+*.opus
