@@ -1,0 +1,136 @@
+services:
+
+  # ---------------------------------------------------------
+  # 🗄️ DATABASE & CACHE
+  # ---------------------------------------------------------
+  db:
+    image: postgres:14-alpine
+    container_name: echofi_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-echofi_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+      POSTGRES_DB: ${DB_NAME:-echofi_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-echofi_user} -d ${DB_NAME:-echofi_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: echofi_redis
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ---------------------------------------------------------
+  # 🐍 BACKEND APPLICATION
+  # ---------------------------------------------------------
+  backend:
+    build: 
+      context: ./echofi-backend
+    container_name: echofi_backend_app
+    restart: unless-stopped
+    command: /bin/sh -c "/app/wait-for-it.sh db python -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4"
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./echofi-backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./echofi-backend:/app
+
+  # ---------------------------------------------------------
+  # 🧠 NLP INTENT MODEL SERVICE
+  # ---------------------------------------------------------
+  nlp_service:
+    build:
+      context: ./NLP_Intent_Model
+    container_name: echofi_nlp_service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./NLP_Intent_Model:/app
+
+  # ---------------------------------------------------------
+  # 🔊 VOICE MICROSERVICES
+  # ---------------------------------------------------------
+  stt_service:
+    build:
+      context: ./voice-services/stt
+    container_name: stt_service
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./voice-services/stt/data:/app/data
+    environment:
+      - JWT_SECRET=change-this
+    restart: unless-stopped
+
+  tts_service:
+    build:
+      context: ./voice-services/tts
+    container_name: tts_service
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./voice-services/tts/data/out:/app/data/out
+    environment:
+      - JWT_SECRET=change-this
+    restart: unless-stopped
+
+  api_gateway:
+    build: 
+      context: ./voice-services/api-gateway
+    container_name: api_gateway
+    ports:
+      - "9000:8000"
+    environment:
+      - STT_URL=http://stt_service:8001/asr
+      - TTS_URL=http://tts_service:8002/tts
+      - NLP_URL=http://nlp_service:8081/dialogue
+      - TTS_BASE_URL=http://localhost:8002
+      - JWT_SECRET=change-this
+    depends_on:
+      - stt_service
+      - tts_service
+      - nlp_service
+    restart: unless-stopped
+
+  # ---------------------------------------------------------
+  # 💻 FRONTEND APPLICATION
+  # ---------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+    container_name: echofi_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+      - api_gateway
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
